@@ -40,11 +40,6 @@ public class ControlBinding
         if (primaryPressed || secondaryPressed)
             return true;
 
-
-
-
-
-
         return false;
     }
 

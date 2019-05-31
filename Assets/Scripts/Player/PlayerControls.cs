@@ -317,7 +317,7 @@ public class PlayerControls : MonoBehaviour
         if(!jumping)
             jumping = true;
 
-        // set jump direction and speed
+    // set jump direction and speed
         jumpDirection = (transform.forward * inputs.y + transform.right * inputs.x).normalized;
         jumpSpeed = currentSpeed;
 
