@@ -2416,7 +2416,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cameraHeight: 1.75
   cameraMaxDistance: 25
-  cameraSpeed: 1.9
+  cameraSpeed: 2
   autoRunReset: 0
   panAngle: 0
   panOffset: 0

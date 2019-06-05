@@ -18,11 +18,11 @@ public class CameraController : MonoBehaviour
     float currentPan, currentTilt = 10, currentDistance = 5;
     [HideInInspector]
     public bool autoRunReset = false;
-  
+
+
     // Camera Smoothing
     [SerializeField]
     float panAngle, panOffset;
-
     bool camXAdjust, camYAdjust;
     float rotationXCushion = 3, rotationXSpeed = 0;
     float yRotMin = 0, yRotMax = 20, rotationYSpeed = 0;
@@ -35,7 +35,6 @@ public class CameraController : MonoBehaviour
     [Range(0.25f, 1.75f)]
     public float cameraAdjustSpeed = 1;
     public CameraMoveState camMoveState = CameraMoveState.OnlyWhileMoving;
- 
 
 
     // References

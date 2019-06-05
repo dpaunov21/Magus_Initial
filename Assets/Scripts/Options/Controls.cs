@@ -9,5 +9,7 @@ public class Controls
     public ControlBinding forwards, backwards, strafeLeft, strafeRight, rotateLeft, rotateRight, walkRun, jump, autoRun;
 
 
+    // ADD BINDING TO FIRE A WEAPON
+    public ControlBinding fireProjectile;
 
 }

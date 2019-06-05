@@ -6,6 +6,9 @@ using UnityEngine;
 public class ControlBinding 
 {
 
+    //SET BINDING FOR SHOOTING IN HERE AND IN UNITY
+
+
     public KeyCode[] primary = new KeyCode[1], secondary;
 
     public bool GetControlBinding()
@@ -39,6 +42,11 @@ public class ControlBinding
         // Check Keybindings
         if (primaryPressed || secondaryPressed)
             return true;
+
+
+
+
+
 
         return false;
     }

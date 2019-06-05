@@ -2,6 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
+// SETUP FIRING INPUTS AND METHODS
+
+
+
 public class PlayerControls : MonoBehaviour
 {
 
@@ -12,7 +17,7 @@ public class PlayerControls : MonoBehaviour
     public Vector2 inputNormalized;
     [HideInInspector]
     public float rotation;
-    bool run = true, jump;
+    bool run = true, jump, shoot = false;
     [HideInInspector]
     public bool steer, autoRun;
 
@@ -30,9 +35,9 @@ public class PlayerControls : MonoBehaviour
     // Ground
     Vector3 forwardDirection, collisionPoint;
     [SerializeField]
-    float slopeAngle, forwardAngle;
+    float slopeAngle, directionAngle,  forwardAngle, strafeAngle;
     [SerializeField]
-    float forwardSlopeMultiplier;
+    float forwardSlopeMultiplier, strafeMultiplier;
     Ray groundRay;
     RaycastHit groundHit;
 
@@ -45,13 +50,18 @@ public class PlayerControls : MonoBehaviour
     Vector3 jumpDirection;
 
 
-    // DEBUG
-    public bool showGroundRay, showGroundNormal, showFallNormal;
+    // DEBUG (MOVEMENT)
+    public bool showGroundRay, showMoveDirection, showForwardDirection, showStrafeDirection, showFallNormal;
+
+    // WEAPON SHOOTING
+    public Transform projectileSpawnPoint;
+    public GameObject projectile;
+    public bool showFireDirection;
 
 
     // Component References
     CharacterController controller;
-    public Transform groundDirection, fallDirection;
+    public Transform groundDirection, moveDirection, fallDirection, fireDirection;
     [HideInInspector]
     public CameraController mainCam;
 
@@ -60,6 +70,15 @@ public class PlayerControls : MonoBehaviour
     void Start()
     {
         controller = GetComponent<CharacterController>();
+
+        // projectile spawn setup
+        projectileSpawnPoint = transform.FindChild("ProjectileSpawnPoint");
+        //projectileSpawnPoint = transform.Find("ProjectileSpawnPoint");
+
+        if (projectileSpawnPoint == null)
+        {
+            print("No bullet spawn point found - setup incorrectly");
+        }
     }
 
     void Update()
@@ -117,6 +136,20 @@ public class PlayerControls : MonoBehaviour
         // Jumping
         jump = controls.jump.GetControlBinding();
 
+        // Firing Weapon
+        if (controls.fireProjectile.GetControlBindingDown())
+        {
+            FireWeapon();
+            print("weapon fired");
+            shoot = !shoot;
+        }
+           
+
+
+
+        // 
+        inputNormalized = inputs.normalized;
+
     }
 
 
@@ -145,8 +178,7 @@ public class PlayerControls : MonoBehaviour
         if (controller.isGrounded && slopeAngle <= controller.slopeLimit)
         {
 
-            inputNormalized = inputs;
-
+            
             currentSpeed = baseSpeed;
 
             if (run)
@@ -179,22 +211,26 @@ public class PlayerControls : MonoBehaviour
         if (!controller.isGrounded && velocityY > terminalVelocity)
             velocityY += gravity * Time.deltaTime;
         else if (controller.isGrounded && slopeAngle > controller.slopeLimit)
-            velocityY = Mathf.Lerp(velocityY, terminalVelocity, 0.25f);
+            velocityY = Mathf.Lerp(velocityY, terminalVelocity, 0.025f);
 
 
         // Applying inputs ********************************************* FIX ******************************************
 
         if (!jumping)
         {
-            //velocity = (transform.forward * inputNormalized.y + transform.right * inputNormalized.x) * currentSpeed + Vector3.up * velocityY;   OLD WORKING
-
-            velocity = (groundDirection.forward * inputNormalized.magnitude ) * (currentSpeed * forwardSlopeMultiplier) + fallDirection.up * (velocityY * fallMultiplier);
+            velocity = (groundDirection.forward * inputNormalized.y * forwardSlopeMultiplier + groundDirection.right * inputNormalized.x * strafeMultiplier);  // applying movement direction inputs
+            velocity *= currentSpeed;   // applying current move speed
+            velocity += fallDirection.up * (velocityY * fallMultiplier);  // gravity
         }
+        
+            //velocity = (transform.forward * inputNormalized.y + transform.right * inputNormalized.x) * currentSpeed + Vector3.up * velocityY;   OLD WORKING
 
         else
         {
             velocity = jumpDirection * jumpSpeed + Vector3.up * velocityY;
         }
+           
+        
 
 
         // *******************************************************     FIX           **************************************************************
@@ -240,8 +276,10 @@ public class PlayerControls : MonoBehaviour
             forwardDirection += transform.forward;
 
         //Setting groundDirection to look in the forward direction normal
-        groundDirection.LookAt(forwardDirection);
+        moveDirection.LookAt(forwardDirection);
         fallDirection.rotation = transform.rotation;
+        groundDirection.rotation = transform.rotation;
+        fireDirection.rotation = transform.rotation;
 
 
 
@@ -259,19 +297,23 @@ public class PlayerControls : MonoBehaviour
         //set forward angle multiplier  to 1
         forwardSlopeMultiplier = 1;
         fallMultiplier = 1;
+        strafeMultiplier = 1;
 
         if (Physics.Raycast(groundRay, out groundHit, 1.55f))
         {
             //Getting angles
             slopeAngle = Vector3.Angle(transform.up, groundHit.normal);
-            forwardAngle = Vector3.Angle(groundDirection.forward, groundHit.normal) - 90;
+            directionAngle = Vector3.Angle(moveDirection.forward, groundHit.normal) - 90;
 
-            if(forwardAngle < 0 && slopeAngle <= controller.slopeLimit)
+            if(directionAngle < 0 && slopeAngle <= controller.slopeLimit)
             {
-                forwardSlopeMultiplier = 1 / Mathf.Cos(forwardAngle * Mathf.Deg2Rad);
+                forwardAngle = Vector3.Angle(transform.forward, groundHit.normal) - 90;  // checking the forwardAngle against the slope
+                forwardSlopeMultiplier = 1 / Mathf.Cos(forwardAngle * Mathf.Deg2Rad);  // applying the forward movement multiplier based on the forwardAngle
+                groundDirection.eulerAngles += new Vector3(-forwardAngle, 0, 0);    // rotating groundDirection X
 
-                // setting ground direction based on forward angle
-                groundDirection.eulerAngles += new Vector3(-forwardAngle, 0, 0);
+                strafeAngle = Vector3.Angle(groundDirection.right, groundHit.normal) - 90;  // checking the strafeAngle against the slope
+                strafeMultiplier = 1 / Mathf.Cos(strafeAngle * Mathf.Deg2Rad);  // applying the strafe movement multiplier based on the strafeAngle
+                groundDirection.eulerAngles += new Vector3(0, 0, strafeAngle);
             }
             else if(slopeAngle > controller.slopeLimit)
             {
@@ -299,8 +341,14 @@ public class PlayerControls : MonoBehaviour
 
         Vector3 lineStart = transform.position + Vector3.up * 0.05f;
 
-        if (showGroundNormal)
-            Debug.DrawLine(lineStart, lineStart + groundDirection.forward * 0.5f, Color.blue);
+        if (showMoveDirection)
+            Debug.DrawLine(lineStart, lineStart + moveDirection.forward, Color.cyan);
+
+        if (showForwardDirection)
+            Debug.DrawLine(lineStart - groundDirection.forward * 0.5f, lineStart + groundDirection.forward * 0.5f, Color.blue);
+
+        if (showStrafeDirection)
+            Debug.DrawLine(lineStart - groundDirection.right * 0.5f, lineStart + groundDirection.right * 0.5f, Color.red);
 
         if (showFallNormal)
             Debug.DrawLine(lineStart, lineStart + fallDirection.up * 0.5f, Color.green);
@@ -308,6 +356,10 @@ public class PlayerControls : MonoBehaviour
 
         //groundDirection.GetChild(0).gameObject.SetActive(showGroundNormal);
         //fallDirection.GetChild(0).gameObject.SetActive(showFallNormal);
+
+        if (showFireDirection)
+            Debug.DrawLine(lineStart - fireDirection.forward * 0.5f, lineStart + fireDirection.forward * 0.5f, Color.magenta);
+
     }
 
 
@@ -317,12 +369,15 @@ public class PlayerControls : MonoBehaviour
         if(!jumping)
             jumping = true;
 
-    // set jump direction and speed
-        jumpDirection = (transform.forward * inputs.y + transform.right * inputs.x).normalized;
-        jumpSpeed = currentSpeed;
+        // set jump direction and speed
+        //if(groundHit.collider != null )
+        //{
+            jumpDirection = (transform.forward * inputs.y + transform.right * inputs.x).normalized;
+            jumpSpeed = currentSpeed;
 
-        //set velocity Y
-        velocityY = Mathf.Sqrt(-gravity * jumpHeight); 
+            //set velocity Y
+            velocityY = Mathf.Sqrt(-gravity * jumpHeight);
+
         
     }
 
@@ -331,6 +386,18 @@ public class PlayerControls : MonoBehaviour
         collisionPoint = hit.point;
 
         collisionPoint = collisionPoint - transform.position;
+
+    }
+
+    void FireWeapon()
+    {
+        if (shoot)
+                    
+        //INSTANTIATE PROJECTILE AT SPAWN POINT
+        Instantiate(projectile, projectileSpawnPoint.position, projectileSpawnPoint.rotation);
+
+
+        shoot = false;
 
     }
 }
