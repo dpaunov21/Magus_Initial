@@ -1,35 +1,14 @@
-#*#
-*.a
-*.al
-*.aps
-*.bak
-*.cache
-*.dll
-*.eto
-*.exe
-*.la
-*.lo
-*.msi
-*.ncb
-*.o
-*.pdb
-*.pyc
-*.pyo
-*.rej
-*.sdf
-*.so
-*.so.[0-9]*
-*.state
-*.suo
-*.tmp
-*.user
-*~
-.#*
-.*.swp
-.DS_Store
-.idea
-.libs
-.vs
-/Library/metadata/
-Library/metadata/
-blabla
+# Ignore the following files
+# --------------------------
+# Unity3D specific
+#
+**/Library/*
+**/Temp/*
+**/*.csproj
+**/*.unityproj
+**/*.sln
+**/*.userprefs
+**/*.pidb
+
+# include meta files
+!*.*.meta
