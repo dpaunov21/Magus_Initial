@@ -76,6 +76,8 @@
     <Compile Include="Assets\SampleScenes\Scripts\ParticleSceneControls.cs" />
     <Compile Include="Assets\SampleScenes\Scripts\PlaceTargetWithMouse.cs" />
     <Compile Include="Assets\SampleScenes\Scripts\SlowMoButton.cs" />
+    <Compile Include="Assets\Scripts\HUD\Camera_Select.cs" />
+    <Compile Include="Assets\Scripts\HUD\Controls_Button.cs" />
     <Compile Include="Assets\Scripts\Options\ControlBinding.cs" />
     <Compile Include="Assets\Scripts\Options\Controls.cs" />
     <Compile Include="Assets\Scripts\Player\CameraController.cs" />
